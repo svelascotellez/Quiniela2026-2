@@ -393,7 +393,7 @@ def evaluate_participant(participant_path, master_groups, master_groups_list, ma
 # ==============================================================================
 # CREACIÓN DE LA PLANTILLA DEL LEADERBOARD CON DISEÑO PREMIUM
 # ==============================================================================
-def create_premium_leaderboard(results, output_path, max_possible_pts):
+def create_premium_leaderboard(results, output_path, max_possible_pts, master_groups_list=None, master_ko_matches=None):
     """
     Genera un archivo de Excel espectacular, usando una paleta de colores
     coherente (Verdes/Esmeraldas) que coincide con el diseño de la quiniela.
@@ -562,6 +562,83 @@ def create_premium_leaderboard(results, output_path, max_possible_pts):
         
     # Columna del nombre necesita un ancho especial más generoso
     ws.column_dimensions["B"].width = 30
+    
+    # ==============================================================================
+    # PESTAÑA DE RESULTADOS OFICIALES
+    # ==============================================================================
+    if master_groups_list is not None and master_ko_matches is not None:
+        ws_res = wb.create_sheet(title="Resultados Oficiales")
+        ws_res.views.sheetView[0].showGridLines = False
+        
+        # Titulo
+        ws_res.merge_cells("A1:C2")
+        title_res = ws_res["A1"]
+        title_res.value = "RESULTADOS OFICIALES DEL MUNDIAL"
+        title_res.font = font_title
+        title_res.fill = fill_header_dark
+        title_res.alignment = align_center
+        ws_res.row_dimensions[1].height = 20
+        ws_res.row_dimensions[2].height = 20
+        
+        ws_res.row_dimensions[3].height = 15
+        
+        # Cabeceras
+        for col_idx, text in enumerate(["Equipo 1", "Marcador", "Equipo 2"], 1):
+            c = ws_res.cell(row=4, column=col_idx, value=text)
+            c.font = font_header
+            c.fill = fill_header_dark
+            c.alignment = align_center
+            c.border = border_header
+            
+        current_row = 5
+        
+        # Filtros: solo partidos jugados
+        played_groups = [m for m in master_groups_list if m["score1"] is not None and m["score2"] is not None]
+        played_ko = [m for m in master_ko_matches.values() if m["score1"] is not None and m["score2"] is not None]
+        
+        def write_section_header(title, row):
+            ws_res.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
+            c = ws_res.cell(row=row, column=1, value=title)
+            c.font = font_data_bold
+            c.fill = fill_subheader
+            c.alignment = align_center
+            c.border = border_cell
+        
+        def write_match(m, row):
+            c1 = ws_res.cell(row=row, column=1, value=m['team1'])
+            c2 = ws_res.cell(row=row, column=2, value=f"{m['score1']} - {m['score2']}")
+            c3 = ws_res.cell(row=row, column=3, value=m['team2'])
+            
+            for c in [c1, c2, c3]:
+                c.font = font_data_normal
+                c.alignment = align_center
+                c.border = border_cell
+                if row % 2 == 0:
+                    c.fill = fill_zebra_light
+
+        # Escribir Grupos
+        if played_groups:
+            write_section_header("Fase de Grupos", current_row)
+            current_row += 1
+            for m in played_groups:
+                write_match(m, current_row)
+                current_row += 1
+                
+        # Espacio
+        current_row += 1
+        
+        # Escribir Eliminatorias
+        if played_ko:
+            write_section_header("Fase Eliminatoria", current_row)
+            current_row += 1
+            for m in played_ko:
+                write_match(m, current_row)
+                current_row += 1
+                
+        # Ancho de columnas
+        ws_res.column_dimensions["A"].width = 25
+        ws_res.column_dimensions["B"].width = 15
+        ws_res.column_dimensions["C"].width = 25
     
     wb.save(output_path)
     wb.close()

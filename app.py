@@ -166,7 +166,7 @@ if st.button("🚀 Calcular Clasificación", type="primary", use_container_width
                 
                 # 5. Generar Excel en memoria
                 excel_buffer = BytesIO()
-                create_premium_leaderboard(participant_results, excel_buffer, max_possible_pts)
+                create_premium_leaderboard(participant_results, excel_buffer, max_possible_pts, master_groups_list, master_ko_matches)
                 excel_buffer.seek(0)
                 
                 # 6. Botón de descarga de Excel
