@@ -68,6 +68,7 @@ with tab_app:
             # Guardar archivo maestro físico
             with open(MASTER_FILE_PATH, "wb") as f:
                 f.write(master_file_upload.getbuffer())
+            st.session_state.calcular = False
             st.success("Archivo Maestro guardado y actualizado con éxito.")
             st.rerun()
 
@@ -81,6 +82,7 @@ with tab_app:
                 path = os.path.join(PARTICIPANTS_DIR, p_file.name)
                 with open(path, "wb") as f:
                     f.write(p_file.getbuffer())
+            st.session_state.calcular = False
             st.success(f"Se han guardado {len(participant_uploads)} nuevos participantes.")
             st.rerun()
             
@@ -98,6 +100,7 @@ with tab_app:
                 with col_btn:
                     if st.button("🗑️", key=f"del_{p_file}", help=f"Eliminar {p_file}"):
                         delete_participant(p_file)
+                        st.session_state.calcular = False
                         st.rerun()
 
     st.divider()
@@ -106,13 +109,18 @@ with tab_app:
     # SECCIÓN DE CÁLCULO
     # ==========================================
     if st.button("🚀 Calcular Clasificación", type="primary", use_container_width=True):
+        st.session_state.calcular = True
+
+    if st.session_state.get("calcular", False):
         if not os.path.exists(MASTER_FILE_PATH):
             st.error("Debes subir un archivo Maestro primero.")
+            st.session_state.calcular = False
             st.stop()
             
         saved_participants = get_saved_participants()
         if not saved_participants:
             st.error("Debes añadir al menos un participante para calcular.")
+            st.session_state.calcular = False
             st.stop()
             
         with st.spinner("Procesando resultados oficiales y calculando puntos..."):
@@ -143,6 +151,7 @@ with tab_app:
                 
                 if not participant_results:
                     st.error("No se pudo evaluar a los participantes. Revisa los archivos.")
+                    st.session_state.calcular = False
                     st.stop()
                     
                 # 3. Ordenar resultados
