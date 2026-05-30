@@ -607,6 +607,58 @@ def generate_whatsapp_report(results, max_possible_pts):
     return "\n".join(report)
 
 # ==============================================================================
+# PROCESAMIENTO DEL ARCHIVO MAESTRO
+# ==============================================================================
+def process_master_file(master_file):
+    """
+    Carga el archivo Maestro, extrae los resultados oficiales y calcula 
+    los puntos máximos disputados hasta el momento.
+    """
+    wb_master = openpyxl.load_workbook(master_file, data_only=True)
+    master_groups, master_groups_list = process_group_stage(wb_master['Grupos'], is_master=True)
+    master_ko_advances, master_ko_matches = process_knockout_stage(wb_master['Eliminatorias'])
+    wb_master.close()
+    
+    max_possible_pts = 0
+    
+    # Fase de Grupos
+    group_matches_played = sum(1 for m in master_groups_list if m["score1"] is not None and m["score2"] is not None)
+    max_possible_pts += group_matches_played * POINTS_CONFIG["GROUP_EXACT"]
+    
+    # Eliminatorias - Marcadores de partidos disputados
+    ko_matches_played = sum(1 for m in master_ko_matches.values() if m["score1"] is not None and m["score2"] is not None)
+    max_possible_pts += ko_matches_played * POINTS_CONFIG["KO_MATCH_EXACT"]
+    
+    # Eliminatorias - Equipos avanzados
+    r32_played = sum(1 for t in master_ko_advances["r32"] if t and str(t).strip() != "")
+    max_possible_pts += r32_played * POINTS_CONFIG["TEAM_R32"]
+    
+    r16_played = sum(1 for t in master_ko_advances["r16"] if t and str(t).strip() != "")
+    max_possible_pts += r16_played * POINTS_CONFIG["TEAM_R16"]
+    
+    qf_played = sum(1 for t in master_ko_advances["qf"] if t and str(t).strip() != "")
+    max_possible_pts += qf_played * POINTS_CONFIG["TEAM_QF"]
+    
+    sf_played = sum(1 for t in master_ko_advances["sf"] if t and str(t).strip() != "")
+    max_possible_pts += sf_played * POINTS_CONFIG["TEAM_SF"]
+    
+    t3p_played = sum(1 for t in master_ko_advances["t3p"] if t and str(t).strip() != "")
+    max_possible_pts += t3p_played * POINTS_CONFIG["TEAM_T3P"]
+    
+    final_played = sum(1 for t in master_ko_advances["final"] if t and str(t).strip() != "")
+    max_possible_pts += final_played * POINTS_CONFIG["TEAM_FINAL"]
+    
+    # Podio
+    if master_ko_advances["podium"]["champion"]:
+        max_possible_pts += POINTS_CONFIG["PODIUM_CHAMPION"]
+    if master_ko_advances["podium"]["runnerup"]:
+        max_possible_pts += POINTS_CONFIG["PODIUM_RUNNERUP"]
+    if master_ko_advances["podium"]["third"]:
+        max_possible_pts += POINTS_CONFIG["PODIUM_THIRD"]
+        
+    return master_groups, master_groups_list, master_ko_advances, master_ko_matches, max_possible_pts, group_matches_played
+
+# ==============================================================================
 # ORQUESTACIÓN GENERAL Y ENTRADA DE LÍNEA DE COMANDOS
 # ==============================================================================
 def main():
@@ -643,59 +695,10 @@ def main():
     # 2. Cargar datos del Maestro
     print(f"Cargando archivo Maestro con resultados oficiales...")
     try:
-        wb_master = openpyxl.load_workbook(args.master, data_only=True)
+        master_groups, master_groups_list, master_ko_advances, master_ko_matches, max_possible_pts, group_matches_played = process_master_file(args.master)
     except Exception as e:
-        print(f"ERROR: No se pudo abrir el archivo Maestro: {e}")
+        print(f"ERROR: No se pudo abrir o procesar el archivo Maestro: {e}")
         sys.exit(1)
-        
-    print("Procesando resultados reales de Grupos y Eliminatorias...")
-    master_groups, master_groups_list = process_group_stage(wb_master['Grupos'], is_master=True)
-    master_ko_advances, master_ko_matches = process_knockout_stage(wb_master['Eliminatorias'])
-    wb_master.close()
-    
-    # Calcular Puntos Máximos Posibles Disputados hasta ahora en el torneo real
-    max_possible_pts = 0
-    
-    # Fase de Grupos
-    group_matches_played = sum(1 for m in master_groups_list if m["score1"] is not None and m["score2"] is not None)
-    max_possible_pts += group_matches_played * POINTS_CONFIG["GROUP_EXACT"]
-    
-    # Eliminatorias - Marcadores de partidos disputados
-    ko_matches_played = sum(1 for m in master_ko_matches.values() if m["score1"] is not None and m["score2"] is not None)
-    max_possible_pts += ko_matches_played * POINTS_CONFIG["KO_MATCH_EXACT"]
-    
-    # Eliminatorias - Equipos avanzados
-    # R32
-    r32_played = sum(1 for t in master_ko_advances["r32"] if t and str(t).strip() != "")
-    max_possible_pts += r32_played * POINTS_CONFIG["TEAM_R32"]
-    
-    # R16
-    r16_played = sum(1 for t in master_ko_advances["r16"] if t and str(t).strip() != "")
-    max_possible_pts += r16_played * POINTS_CONFIG["TEAM_R16"]
-    
-    # QF
-    qf_played = sum(1 for t in master_ko_advances["qf"] if t and str(t).strip() != "")
-    max_possible_pts += qf_played * POINTS_CONFIG["TEAM_QF"]
-    
-    # SF
-    sf_played = sum(1 for t in master_ko_advances["sf"] if t and str(t).strip() != "")
-    max_possible_pts += sf_played * POINTS_CONFIG["TEAM_SF"]
-    
-    # Tercer Lugar
-    t3p_played = sum(1 for t in master_ko_advances["t3p"] if t and str(t).strip() != "")
-    max_possible_pts += t3p_played * POINTS_CONFIG["TEAM_T3P"]
-    
-    # Final
-    final_played = sum(1 for t in master_ko_advances["final"] if t and str(t).strip() != "")
-    max_possible_pts += final_played * POINTS_CONFIG["TEAM_FINAL"]
-    
-    # Podio
-    if master_ko_advances["podium"]["champion"]:
-        max_possible_pts += POINTS_CONFIG["PODIUM_CHAMPION"]
-    if master_ko_advances["podium"]["runnerup"]:
-        max_possible_pts += POINTS_CONFIG["PODIUM_RUNNERUP"]
-    if master_ko_advances["podium"]["third"]:
-        max_possible_pts += POINTS_CONFIG["PODIUM_THIRD"]
         
     print(f"Resultados oficiales cargados. Partidos grupales oficiales jugados: {group_matches_played}.")
     print(f"Puntos maximos disputados hasta el momento: {max_possible_pts} pts.")
