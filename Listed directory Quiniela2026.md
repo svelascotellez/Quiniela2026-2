@@ -1,9 +1,4 @@
-Listed directory Quiniela2026
-Listed directory Antigravity
-Viewed Walkthrougth.md:1-111
-Viewed consolidate_quinielas.py:1-781
-
-He analizado el proyecto. Se trata de un **Sistema Integral de Gestión y Evaluación Automatizada para una Quiniela del Mundial de la FIFA 2026**. 
+**Sistema Integral de Gestión y Evaluación Automatizada para una Quiniela del Mundial de la FIFA 2026**. 
 
 El proyecto combina hojas de cálculo de Excel con un backend en Python para automatizar el cálculo de puntuaciones, lo cual es ideal para gestionar quinielas con múltiples participantes.
 
@@ -32,5 +27,3 @@ El proyecto combina hojas de cálculo de Excel con un backend en Python para aut
 2. Los participantes la llenan y la devuelven. El administrador guarda todos los archivos en una carpeta `Participantes`.
 3. A medida que ocurren los partidos reales, el administrador actualiza su propio archivo "Maestro" con los resultados reales.
 4. El administrador ejecuta `consolidate_quinielas.py`. El script lee el archivo maestro, evalúa todas las quinielas de la carpeta, y escupe instantáneamente la tabla de clasificación actualizada en Excel y el mensaje de texto para WhatsApp.
-
-¿Hay alguna parte en específico de este código o de los archivos Excel que te gustaría revisar, modificar o probar?
