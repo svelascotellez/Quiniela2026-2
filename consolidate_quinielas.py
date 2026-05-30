@@ -234,7 +234,7 @@ def evaluate_participant(participant_path, master_groups, master_groups_list, ma
     group_outcome_matches = 0
     group_matches_played = 0
     
-    part_groups, _ = process_group_stage(wb['Grupos'])
+    part_groups, part_groups_list = process_group_stage(wb['Grupos'])
     
     for master_key, master_match in master_groups.items():
         m_s1, m_s2 = master_match["score1"], master_match["score2"]
@@ -387,7 +387,9 @@ def evaluate_participant(participant_path, master_groups, master_groups_list, ma
         "ko_exact_matches": ko_exact_matches,
         "ko_outcome_matches": ko_outcome_matches,
         "exact_aciertos_totales": exact_aciertos_totales,
-        "group_matches_played": group_matches_played
+        "group_matches_played": group_matches_played,
+        "predictions_groups_list": part_groups_list,
+        "predictions_ko_matches": part_ko_matches
     }
 
 # ==============================================================================
@@ -639,6 +641,94 @@ def create_premium_leaderboard(results, output_path, max_possible_pts, master_gr
         ws_res.column_dimensions["A"].width = 25
         ws_res.column_dimensions["B"].width = 15
         ws_res.column_dimensions["C"].width = 25
+        
+    # ==============================================================================
+    # PESTAÑAS INDIVIDUALES POR PARTICIPANTE
+    # ==============================================================================
+    # Creamos una hoja por cada participante con sus predicciones
+    for r in results:
+        # Asegurar que el nombre de la hoja sea válido en Excel (max 31 chars, sin caracteres prohibidos)
+        import re
+        raw_name = re.sub(r'[\\*?:/\[\]]', '', str(r["name"]))
+        sheet_name = raw_name[:31]
+        
+        # Evitar nombres de hoja duplicados
+        base_name = sheet_name
+        counter = 1
+        while sheet_name in wb.sheetnames:
+            suffix = f"_{counter}"
+            sheet_name = f"{base_name[:31-len(suffix)]}{suffix}"
+            counter += 1
+            
+        ws_p = wb.create_sheet(title=sheet_name)
+        ws_p.views.sheetView[0].showGridLines = False
+        
+        # Titulo
+        ws_p.merge_cells("A1:C2")
+        title_p = ws_p["A1"]
+        title_p.value = f"PRONÓSTICOS: {r['name'].upper()}"
+        title_p.font = font_title
+        title_p.fill = fill_header_dark
+        title_p.alignment = align_center
+        ws_p.row_dimensions[1].height = 20
+        ws_p.row_dimensions[2].height = 20
+        ws_p.row_dimensions[3].height = 15
+        
+        # Cabeceras
+        for col_idx, text in enumerate(["Equipo 1", "Marcador Pronosticado", "Equipo 2"], 1):
+            c = ws_p.cell(row=4, column=col_idx, value=text)
+            c.font = font_header
+            c.fill = fill_header_dark
+            c.alignment = align_center
+            c.border = border_header
+            
+        current_row = 5
+        
+        def write_p_section_header(title, row):
+            ws_p.merge_cells(start_row=row, start_column=1, end_row=row, end_column=3)
+            c = ws_p.cell(row=row, column=1, value=title)
+            c.font = font_data_bold
+            c.fill = fill_subheader
+            c.alignment = align_center
+            c.border = border_cell
+        
+        def write_p_match(team1, s1, s2, team2, row):
+            c1 = ws_p.cell(row=row, column=1, value=team1)
+            
+            score_str = f"{s1} - {s2}" if s1 is not None and s2 is not None else "No pronosticado"
+            c2 = ws_p.cell(row=row, column=2, value=score_str)
+            c3 = ws_p.cell(row=row, column=3, value=team2)
+            
+            for c in [c1, c2, c3]:
+                c.font = font_data_normal
+                c.alignment = align_center
+                c.border = border_cell
+                if row % 2 == 0:
+                    c.fill = fill_zebra_light
+
+        # Escribir Grupos
+        if "predictions_groups_list" in r and r["predictions_groups_list"]:
+            write_p_section_header("Fase de Grupos", current_row)
+            current_row += 1
+            for m in r["predictions_groups_list"]:
+                write_p_match(m['team1'], m['score1'], m['score2'], m['team2'], current_row)
+                current_row += 1
+                
+        # Espacio
+        current_row += 1
+        
+        # Escribir Eliminatorias
+        if "predictions_ko_matches" in r and r["predictions_ko_matches"]:
+            write_p_section_header("Fase Eliminatoria", current_row)
+            current_row += 1
+            for m in r["predictions_ko_matches"].values():
+                write_p_match(m['team1'], m['score1'], m['score2'], m['team2'], current_row)
+                current_row += 1
+                
+        # Ancho de columnas
+        ws_p.column_dimensions["A"].width = 25
+        ws_p.column_dimensions["B"].width = 25
+        ws_p.column_dimensions["C"].width = 25
     
     wb.save(output_path)
     wb.close()
