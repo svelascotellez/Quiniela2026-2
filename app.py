@@ -49,6 +49,21 @@ st.markdown("""
 Sube el archivo maestro y los archivos de los participantes. El sistema los **guardará automáticamente** para que no tengas que volver a subirlos la próxima vez.
 """)
 
+# Botón para descargar plantilla vacía
+TEMPLATE_PATH = "Quiniela_Mundial_2026_Final_vacia.xlsx"
+if os.path.exists(TEMPLATE_PATH):
+    with open(TEMPLATE_PATH, "rb") as f:
+        template_bytes = f.read()
+    st.download_button(
+        label="📄 Descargar Plantilla Vacía para Participar",
+        data=template_bytes,
+        file_name="Quiniela_Mundial_2026_Plantilla.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        help="Descarga este archivo de Excel, llénalo con tus pronósticos y súbelo para participar."
+    )
+    st.write("") # Espacio
+
+
 tab_app, tab_instructions = st.tabs(["🎮 Panel de Control", "📖 Instrucciones y Reglas"])
 
 with tab_app:
