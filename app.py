@@ -67,37 +67,72 @@ if master_file and participant_files:
                     key=lambda x: (-x["total_points"], -x["exact_aciertos_totales"], x["name"].lower())
                 )
                 
-                # 4. Mostrar DataFrame (Tabla Resumen en Web)
-                st.subheader("📊 Tabla de Clasificación")
-                df_data = []
-                for idx, r in enumerate(participant_results, 1):
-                    df_data.append({
-                        "Posición": idx,
-                        "Nombre": r["name"],
-                        "Puntos Totales": r["total_points"],
-                        "Efectividad": f"{(r['total_points']/max_possible_pts*100) if max_possible_pts > 0 else 0:.1f}%",
-                        "Marcadores Exactos": r["exact_aciertos_totales"]
-                    })
-                st.dataframe(pd.DataFrame(df_data), use_container_width=True)
+                # CREAR PESTAÑAS
+                tab1, tab2 = st.tabs(["🏆 Clasificación General", "⚽ Resultados Oficiales"])
                 
-                # 5. Generar Excel en memoria
-                excel_buffer = BytesIO()
-                create_premium_leaderboard(participant_results, excel_buffer, max_possible_pts)
-                excel_buffer.seek(0)
-                
-                # 6. Botón de descarga de Excel
-                st.download_button(
-                    label="📥 Descargar Leaderboard Oficial (Excel)",
-                    data=excel_buffer,
-                    file_name="Clasificacion_Quiniela_Mundial_2026.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    type="primary"
-                )
-                
-                # 7. Texto de WhatsApp
-                st.subheader("📱 Reporte para WhatsApp")
-                whatsapp_text = generate_whatsapp_report(participant_results, max_possible_pts)
-                st.code(whatsapp_text, language="text")
-                
+                with tab1:
+                    # 4. Mostrar DataFrame (Tabla Resumen en Web)
+                    st.subheader("📊 Tabla de Clasificación")
+                    df_data = []
+                    for idx, r in enumerate(participant_results, 1):
+                        df_data.append({
+                            "Posición": idx,
+                            "Nombre": r["name"],
+                            "Puntos Totales": r["total_points"],
+                            "Efectividad": f"{(r['total_points']/max_possible_pts*100) if max_possible_pts > 0 else 0:.1f}%",
+                            "Marcadores Exactos": r["exact_aciertos_totales"]
+                        })
+                    st.dataframe(pd.DataFrame(df_data), use_container_width=True)
+                    
+                    # 5. Generar Excel en memoria
+                    excel_buffer = BytesIO()
+                    create_premium_leaderboard(participant_results, excel_buffer, max_possible_pts)
+                    excel_buffer.seek(0)
+                    
+                    # 6. Botón de descarga de Excel
+                    st.download_button(
+                        label="📥 Descargar Leaderboard Oficial (Excel)",
+                        data=excel_buffer,
+                        file_name="Clasificacion_Quiniela_Mundial_2026.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        type="primary"
+                    )
+                    
+                    # 7. Texto de WhatsApp
+                    st.subheader("📱 Reporte para WhatsApp")
+                    whatsapp_text = generate_whatsapp_report(participant_results, max_possible_pts)
+                    st.code(whatsapp_text, language="text")
+
+                with tab2:
+                    st.subheader("⚽ Resultados de Partidos Disputados")
+                    st.write("A continuación se muestran los partidos que ya tienen un resultado oficial cargado en el archivo Maestro.")
+                    
+                    # Partidos de Fase de Grupos
+                    played_groups = [m for m in master_groups_list if m["score1"] is not None and m["score2"] is not None]
+                    
+                    if played_groups:
+                        st.markdown("### Fase de Grupos")
+                        for m in played_groups:
+                            st.markdown(f"- **{m['team1']}** `{m['score1']} - {m['score2']}` **{m['team2']}**")
+                    else:
+                        st.info("Aún no hay resultados de Fase de Grupos.")
+                        
+                    # Partidos de Eliminatorias
+                    played_ko = [m for m in master_ko_matches.values() if m["score1"] is not None and m["score2"] is not None]
+                    
+                    if played_ko:
+                        st.markdown("### Eliminatorias")
+                        for m in played_ko:
+                            phase_map = {
+                                "r32": "Dieciseisavos de Final",
+                                "r16": "Octavos de Final",
+                                "qf": "Cuartos de Final",
+                                "sf": "Semifinales",
+                                "t3p": "Tercer Lugar",
+                                "final": "Gran Final"
+                            }
+                            phase_name = phase_map.get(m.get("phase", ""), "Eliminatoria")
+                            st.markdown(f"- *{phase_name}:* **{m['team1']}** `{m['score1']} - {m['score2']}` **{m['team2']}**")
+                    
             except Exception as e:
                 st.error(f"Ocurrió un error general: {e}")
