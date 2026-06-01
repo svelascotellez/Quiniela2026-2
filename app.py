@@ -17,6 +17,29 @@ st.set_page_config(
 )
 
 # ==========================================
+# AUTENTICACIÓN
+# ==========================================
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔒 Acceso a la Quiniela")
+    st.markdown("Por favor, ingresa tus credenciales para acceder al sistema.")
+    with st.form("login_form"):
+        username = st.text_input("Usuario")
+        password = st.text_input("Contraseña", type="password")
+        submit = st.form_submit_button("Ingresar")
+        
+        if submit:
+            # Aquí se define el usuario y contraseña
+            if username == "admin" and password == "mundial2026":
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
+    st.stop()
+
+# ==========================================
 # CONFIGURACIÓN DE DIRECTORIOS LOCALES
 # ==========================================
 DATA_DIR = "data"
