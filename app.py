@@ -85,7 +85,7 @@ with col_btn1:
         st.download_button(
             label="📄 Descargar Plantilla para Participar",
             data=template_bytes,
-            file_name="Quiniela_Mundial_2026_Plantilla.xlsx",
+            file_name="Quiniela_Mundial_2026_Final_vacia.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             help="Descarga este archivo, llénalo con tus pronósticos y súbelo para participar.",
             use_container_width=True
