@@ -17,6 +17,120 @@ st.set_page_config(
 )
 
 # ==========================================
+# ESTILOS CSS - ESTÉTICA FIFA 2026
+# ==========================================
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Oswald:wght@500;700&display=swap');
+
+/* Fuente general y colores */
+html, body, [class*="css"] {
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Títulos con fuente condensada y estilo deportivo */
+h1, h2, h3 {
+    font-family: 'Oswald', sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+h1 {
+    color: #FFFFFF !important;
+    font-size: 3.5rem !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    border-bottom: 3px solid #E10600; /* Acento rojo/magenta */
+    padding-bottom: 10px;
+    margin-bottom: 30px !important;
+}
+
+h2 {
+    color: #00E5FF !important; /* Acento cyan Neón */
+}
+
+/* Estilo de botones estilo FIFA */
+div.stButton > button:first-child {
+    background: linear-gradient(135deg, #0253CC 0%, #002266 100%);
+    color: white;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.2rem;
+    padding: 0.5rem 2rem;
+    border: none;
+    border-radius: 30px; /* Botones redondeados tipo píldora */
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(2, 83, 204, 0.4);
+    transition: all 0.3s ease;
+}
+
+div.stButton > button:first-child:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(2, 83, 204, 0.6);
+    background: linear-gradient(135deg, #002266 0%, #0253CC 100%);
+    color: #00E5FF !important; /* Texto cyan brillante al hover */
+    border: 1px solid #00E5FF !important;
+}
+
+div.stDownloadButton > button:first-child {
+    background: linear-gradient(135deg, #E10600 0%, #8B0000 100%);
+    color: white;
+    font-family: 'Oswald', sans-serif;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(225, 6, 0, 0.4);
+    border: none;
+}
+
+div.stDownloadButton > button:first-child:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #8B0000 0%, #E10600 100%);
+    box-shadow: 0 6px 20px rgba(225, 6, 0, 0.6);
+    border: 1px solid #FF4B4B !important;
+    color: white !important;
+}
+
+/* Estilos para las pestañas (Tabs) */
+[data-baseweb="tab"] {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+[data-baseweb="tab-list"] {
+    gap: 20px;
+    border-bottom: 2px solid #141C2A;
+}
+
+[data-baseweb="tab"] p {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.3rem;
+    color: #8892A3;
+    text-transform: uppercase;
+}
+
+[aria-selected="true"] {
+    border-bottom: 4px solid #00E5FF !important;
+}
+
+[aria-selected="true"] p {
+    color: #FFFFFF !important;
+}
+
+/* Estilizar las cajas/paneles y tarjetas */
+.stAlert {
+    border-radius: 10px;
+    border-left: 5px solid;
+}
+
+/* Efecto en los DataFrames */
+[data-testid="stDataFrame"] {
+    border: 1px solid #141C2A;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================================
 # AUTENTICACIÓN
 # ==========================================
 if "authenticated" not in st.session_state:
