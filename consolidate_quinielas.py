@@ -414,7 +414,8 @@ def evaluate_participant(participant_path, master_groups, master_groups_list, ma
         "exact_aciertos_totales": exact_aciertos_totales,
         "group_matches_played": group_matches_played,
         "predictions_groups_list": part_groups_list,
-        "predictions_ko_matches": part_ko_matches
+        "predictions_ko_matches": part_ko_matches,
+        "predictions_advances": part_ko_advances
     }
 
 # ==============================================================================

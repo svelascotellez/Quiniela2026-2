@@ -330,7 +330,7 @@ with tab_app:
                 )
                 
                 # CREAR PESTAÑAS
-                tab_clasif, tab_resul = st.tabs(["🏆 Clasificación General", "⚽ Resultados Oficiales"])
+                tab_clasif, tab_resul, tab_dashboard = st.tabs(["🏆 Clasificación General", "⚽ Resultados Oficiales", "📈 Estadísticas"])
                 
                 with tab_clasif:
                     # 4. Mostrar DataFrame (Tabla Resumen en Web)
@@ -396,6 +396,62 @@ with tab_app:
                             phase_name = phase_map.get(m.get("phase", ""), "Eliminatoria")
                             st.markdown(f"- *{phase_name}:* **{m['team1']}** `{m['score1']} - {m['score2']}` **{m['team2']}**")
                     
+                with tab_dashboard:
+                    st.subheader("📊 Estadísticas de la Quiniela")
+                    
+                    if not participant_results:
+                        st.info("No hay suficientes datos para mostrar estadísticas.")
+                    else:
+                        # 1. Métricas Generales
+                        col_m1, col_m2, col_m3 = st.columns(3)
+                        total_participants = len(participant_results)
+                        avg_score = sum(r["total_points"] for r in participant_results) / total_participants
+                        max_score = participant_results[0]["total_points"] # Already sorted
+                        
+                        col_m1.metric("👥 Total Participantes", total_participants)
+                        col_m2.metric("⭐ Puntaje Promedio", f"{avg_score:.1f} pts")
+                        col_m3.metric("🔥 Puntaje Máximo", f"{max_score} pts")
+                        
+                        st.divider()
+                        
+                        col_chart1, col_chart2 = st.columns(2)
+                        
+                        with col_chart1:
+                            st.markdown("### 🏆 Favoritos para Campeón")
+                            champions = [r.get("predictions_advances", {}).get("podium", {}).get("champion") for r in participant_results]
+                            champions = [c for c in champions if c and str(c).strip() != ""]
+                            if champions:
+                                df_champ = pd.DataFrame(champions, columns=["Equipo"])
+                                champ_counts = df_champ["Equipo"].value_counts().reset_index()
+                                champ_counts.columns = ["Equipo", "Votos"]
+                                st.bar_chart(champ_counts.set_index("Equipo"))
+                            else:
+                                st.info("Nadie ha pronosticado al campeón.")
+                                
+                        with col_chart2:
+                            st.markdown("### ⚔️ Equipos en la Gran Final")
+                            finalists = []
+                            for r in participant_results:
+                                fin = r.get("predictions_advances", {}).get("final", [])
+                                finalists.extend([f for f in fin if f and str(f).strip() != ""])
+                            
+                            if finalists:
+                                df_fin = pd.DataFrame(finalists, columns=["Equipo"])
+                                fin_counts = df_fin["Equipo"].value_counts().reset_index()
+                                fin_counts.columns = ["Equipo", "Votos"]
+                                st.bar_chart(fin_counts.set_index("Equipo"))
+                            else:
+                                st.info("Nadie ha pronosticado finalistas.")
+                        
+                        st.markdown("### 📈 Distribución de Puntos")
+                        points = [r["total_points"] for r in participant_results]
+                        if points:
+                            df_points = pd.DataFrame(points, columns=["Puntos"])
+                            # Count frequencies of points
+                            pt_counts = df_points["Puntos"].value_counts().sort_index().reset_index()
+                            pt_counts.columns = ["Puntos", "Participantes"]
+                            st.bar_chart(pt_counts.set_index("Puntos"))
+                            
             except Exception as e:
                 st.error(f"Ocurrió un error general: {e}")
 
